@@ -58,10 +58,10 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
 
         val args = call.arguments as? Map<String, Any>
         val method = call.method as String
-        if (args !is Map<String, Any> && (method == "canMakePaymentsWithActiveCard" || method == "requestPayment" || method == "switchEnvironment" )) {
+        if (args !is Map<String, Any> && (method == "canMakePaymentsWithActiveCard" || method == "requestPayment" || method == "switchEnvironment")) {
             this.lastResult?.error("invalidParameters", "Invalid parameters", "Invalid parameters")
             return
-        } 
+        }
 
         when (method) {
             "getPlatformVersion" -> result.success("Android ${android.os.Build.VERSION.RELEASE}")
@@ -283,8 +283,10 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
                             val tokenizationData = paymentMethodData["tokenizationData"] as? JSONObject
                             if (tokenizationData != null) {
                                 val token = tokenizationData["token"] as? String
-                                if (token != null) {
-                                    val response: Map<String, String> = mapOf("token" to token)
+                                val description = paymentMethodData["description"] as? String
+                                if (token != null && description != null) {
+                                    print("description: ${description}\n")
+                                    val response: Map<String, String> = mapOf("token" to token, "description" to description)
                                     this.lastResult?.success(response)
                                 }
                             }

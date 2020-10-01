@@ -46,7 +46,7 @@ class FlutterPay {
   /// * [paymentItems] - affects only Apple Pay. See [PaymentItem]
   /// * [merchantName] - affects only Google Pay.
   /// Mercant name which will be displayed to customer.
-  Future<String> requestPayment({
+  Future<Map<String, String>> requestPayment({
     GoogleParameters googleParameters,
     AppleParameters appleParameters,
     List<PaymentNetwork> allowedPaymentNetworks = const [],
@@ -80,18 +80,32 @@ class FlutterPay {
         throw FlutterPayError(description: "Pay response cannot be parsed");
       }
 
+      if (Platform.isAndroid) {
+        var paymentToken = payResponse["token"];
+        var description = payResponse["description"];
+        if ((paymentToken?.isNotEmpty ?? false) &&
+            (description?.isNotEmpty ?? false)) {
+          print("Payment token: $paymentToken");
+          print("Payment description: $description");
+          return {"token": paymentToken, "description": description};
+        } else {
+          print("Payment token: null");
+          return {'': ''};
+        }
+      }
+
       var paymentToken = payResponse["token"];
       if (paymentToken?.isNotEmpty ?? false) {
         print("Payment token: $paymentToken");
-        return paymentToken;
+        return {"token": paymentToken, "description": ''};
       } else {
         print("Payment token: null");
-        return "";
+        return {'': ''};
       }
     } on PlatformException catch (error) {
       if (error.code == "userCancelledError") {
         print(error.message);
-        return "";
+        return {'': ''};
       }
       throw FlutterPayError(code: error.code, description: error.message);
     }
